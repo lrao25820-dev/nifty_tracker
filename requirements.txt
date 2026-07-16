@@ -1,3 +1,4 @@
-stramlit
-yfinance
+streamlit
 pandas
+yfinance
+plotly
