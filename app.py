@@ -17,34 +17,30 @@ tickers = {
 
 # Auto-refresh every 10 seconds
 @st.fragment(run_every=10)
-def load_data():
-    data = []
-    for name, ticker in tickers.items():
+def display_live_dashboard():
+    # Create 6 columns side-by-side for your 6 stocks
+    cols = st.columns(len(tickers))
+    
+    for idx, (name, ticker) in enumerate(tickers.items()):
         try:
             stock = yf.Ticker(ticker)
             info = stock.fast_info
             current_price = info.last_price
             prev_close = info.previous_close
+            
+            # Calculate live percentage change
             pct_change = ((current_price - prev_close) / prev_close) * 100
-            data.append({
-                "Company": name,
-                "Price (₹)": round(current_price, 2),
-                "Change (%)": round(pct_change, 2)
-            })
+            
+            # Display each stock inside its own column layout
+            with cols[idx]:
+                st.metric(
+                    label=name, 
+                    value=f"₹{current_price:,.2f}", 
+                    delta=f"{pct_change:+.2f}%"
+                )
         except Exception:
-            data.append({"Company": name, "Price (₹)": None, "Change (%)": None})
-    return pd.DataFrame(data)
+            with cols[idx]:
+                st.metric(label=name, value="Error", delta="N/A")
 
-df = load_data()
-
-# Display as live metric cards
-cols = st.columns(6)
-for idx, row in df.iterrows():
-    if row["Price (₹)"] is not None:
-        cols[idx].metric(
-            label=row["Company"],
-            value=f"₹{row['Price (₹)']}",
-            delta=f"{row['Change (%)']}%"
-        )
-
-st.dataframe(df, use_container_width=True)
+# Call the function to display the cards on your web page
+display_live_dashboard()
