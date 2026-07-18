@@ -32,7 +32,7 @@ total_weight = sum(ticker_weights.values())
 normalized_weights = {ticker: w / total_weight for ticker, w in ticker_weights.items()}
 
 # -------------------------------------------------------------------------
-# 2. లైవ్ మార్కెట్ సెక్షన్ (ప్రతి 5 సెకన్లకు రిఫ్రెష్ అవుతుంది)
+# 2. లైవ్ మార్కెట్ సెక్షన్ (ప్రти 5 సెకన్లకు రిఫ్రెష్ అవుతుంది)
 st.subheader("⚡ లైవ్ మార్కెట్ ఓవర్‌వ్యూ")
 cols = st.columns(len(tickers))
 
@@ -122,14 +122,14 @@ if len(historical_data) == len(weight_tickers):
     # Plotly క్యాండిల్‌స్టిక్ చార్ట్
     fig = go.Figure()
 
-    # క్యాండిల్స్ జోడించడం
+    # క్యాండిల్స్ జోడించడం (ఇక్కడ తప్పు సరిచేయబడింది)
     fig.add_trace(go.Candlestick(
         x=weighted_df.index,
         open=weighted_df['Open'], high=weighted_df['High'],
         low=weighted_df['Low'], close=weighted_df['Close'],
         name="Weighted Basket",
-        increasing_line_color='#26a69a', decreasing_line_color='#ef5350',
-        increasing_fill_color='#26a69a', decreasing_fill_color='#ef5350'
+        increasing=dict(line=dict(color='#26a69a'), fillcolor='#26a69a'),
+        decreasing=dict(line=dict(color='#ef5350'), fillcolor='#ef5350')
     ))
 
     # EMA లైన్స్ జోడించడం
@@ -144,7 +144,7 @@ if len(historical_data) == len(weight_tickers):
         marker=dict(symbol='triangle-up', color='#00ff88', size=13, line=dict(color='white', width=1))
     ))
 
-    # Sell సిగ్నల్ మార్కర్స్ (ఎరుపు త్రికోణాలు)
+    # Sell సిగ్నల్ మార్కర్స్ (ఎрость త్రికోణాలు)
     sells = weighted_df[weighted_df['Signal'] == -1]
     fig.add_trace(go.Scatter(
         x=sells.index, y=sells['High'] * 1.002,
