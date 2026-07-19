@@ -28,13 +28,14 @@ WEIGHTS = {
     'LT.NS': 0.10
 }
 
-# 2. డేటా క్యాషింగ్ (ఫాస్ట్ లోడింగ్ కోసం మరియు API బ్లాక్ అవ్వకుండా ఉండటానికి)
+# 2. డేటా క్యాషింగ్ (yf.Ticker ఉపయోగించి క్లీన్ డేటా పొందడం - MultiIndex బగ్ ఫిక్స్)
 @st.cache_data(ttl=60)
 def load_market_data():
     data_dict = {}
     for name, ticker in STOCKS.items():
+        stock = yf.Ticker(ticker)
         # 5 రోజుల డేటాను 5 నిమిషాల ఇంట్రాడే ఇంటర్వెల్‌లో తెచ్చుకుంటుంది
-        df = yf.download(ticker, period="5d", interval="5m")
+        df = stock.history(period="5d", interval="5m")
         if not df.empty:
             data_dict[ticker] = df
     return data_dict
@@ -84,7 +85,7 @@ def render_dashboard():
             weighted_df['Low'] += df['Low'] * WEIGHTS[ticker]
             weighted_df['Close'] += df['Close'] * WEIGHTS[ticker]
 
-    # EMA ఇండికేటర్స్ లెక్కించడం
+    # EMA లైన్స్ లెక్కింపు
     weighted_df['EMA_9'] = ta.ema(weighted_df['Close'], length=9)
     weighted_df['EMA_21'] = ta.ema(weighted_df['Close'], length=21)
 
@@ -96,7 +97,7 @@ def render_dashboard():
     # --- Plotly చార్ట్ బిల్డింగ్ ---
     fig = go.Figure()
 
-    # 1. వెయిటెడ్ బాస్కెట్ క్యాండిల్‌స్టిక్ చార్ట్ (ఇక్కడ క్యాండిల్స్ యాడ్ చేశాం)
+    # 1. వెయిటెడ్ బాస్కెట్ క్యాండిల్‌స్టిక్ చార్ట్
     fig.add_trace(go.Candlestick(
         x=weighted_df.index,
         open=weighted_df['Open'],
@@ -105,7 +106,7 @@ def render_dashboard():
         close=weighted_df['Close'],
         name='Weighted Basket',
         increasing_line_color='#00cc66',  # గ్రీన్ క్యాండిల్ బోర్డర్
-        decreasing_line_color='#ff3333'   # రెడ్ క్యాండిల్ బోర్డర్
+        decreasing_line_color='#ff3333'   #  రెడ్ క్యాండిల్ బోర్డర్
     ))
 
     # 2. EMA లైన్స్ జోడించడం
@@ -133,7 +134,7 @@ def render_dashboard():
         yaxis_title="వెయిటెడ్ ధర (INR)",
         xaxis_rangeslider_visible=False, # క్లీన్ లుక్ కోసం కింద ఉండే రేంజ్ స్లైడర్ తీసేశాం
         template="plotly_dark",
-        height=500,  # మొబైల్ స్క్రీన్‌లలో పర్ఫెక్ట్‌గా ఫిట్ అవ్వడానికి హైట్ అడ్జస్ట్ చేశాం
+        height=480,  # మొబైల్ స్క్రీన్‌లలో పర్ఫెక్ట్‌గా ఫిట్ అవ్వడానికి హైట్ అడ్జస్ట్ చేశాం
         margin=dict(l=10, r=10, t=10, b=10),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
